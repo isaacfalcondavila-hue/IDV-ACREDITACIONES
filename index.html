@@ -1,0 +1,21 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>IDV | Acreditaciones de prensa</title><link rel="stylesheet" href="/styles.css"></head>
+<body><header class="topbar"><div class="brand"><div class="logo">IDV</div><div><b>Independiente del Valle</b><small>Acreditaciones de prensa</small></div></div><a href="/admin.html" class="btn secondary tiny">Acceso IDV</a></header>
+<main><div class="wrap"><section id="closed" class="card status-card hidden"><div class="status-icon">—</div><div class="eyebrow">Acreditaciones</div><h2>No hay acreditaciones abiertas</h2><p class="lead" style="margin:auto">Cuando se habilite un partido, podrás enviar tu solicitud desde esta página.</p></section>
+<section id="openSection" class="hidden"><div class="eyebrow">Acreditaciones de prensa</div><h1 id="eventTitle">Próximo partido</h1><p class="lead" id="eventMeta"></p>
+<div class="card hero-card"><h2>Solicitar acreditación</h2><p class="muted">Completa tus datos. Enviar este formulario no garantiza la acreditación: la solicitud será revisada por el equipo de prensa de IDV.</p>
+<form id="form"><div class="grid2">
+<div class="field"><label>Tipo de acreditación</label><select name="category"><option value="press">Prensa escrita / periodista</option><option value="photo">Fotógrafo</option></select></div>
+<div class="field"><label>Medio de comunicación *</label><input name="mediaName" required placeholder="Ej.: La Red, ESPN, Primicias"></div>
+<div class="field"><label>Nombres *</label><input name="firstName" required></div><div class="field"><label>Apellidos *</label><input name="lastName" required></div>
+<div class="field"><label>Cédula / Pasaporte *</label><input name="document" required></div><div class="field"><label>Cargo / función *</label><input name="roleTitle" required placeholder="Ej.: Periodista deportivo"></div>
+<div class="field"><label>Correo *</label><input name="email" type="email" required></div><div class="field"><label>Teléfono *</label><input name="phone" required></div>
+<div class="field" style="grid-column:1/-1"><label>¿Qué cobertura vas a realizar? *</label><textarea name="coverage" rows="3" required placeholder="Describe brevemente la cobertura prevista"></textarea></div>
+<div class="field" style="grid-column:1/-1"><label>Observaciones</label><textarea name="notes" rows="3"></textarea></div>
+</div><div id="msg"></div><button class="btn primary">Enviar solicitud</button></form></div></section>
+<section id="done" class="card status-card hidden"><div class="status-icon">✓</div><div class="eyebrow">Solicitud recibida</div><h2>Tu solicitud está pendiente</h2><p class="lead" style="margin:10px auto">Guarda este código para consultar el estado de tu acreditación.</p><div class="card" style="margin:20px auto;max-width:360px"><small class="muted">CÓDIGO DE SOLICITUD</small><h2 class="code" id="code"></h2></div><a id="statusLink" class="btn primary">Consultar estado</a></section>
+</div></main>
+<script>
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
+(async()=>{let j=await fetch('/api/public/event').then(r=>r.json());if(!j.event){document.getElementById('closed').classList.remove('hidden');return}document.getElementById('openSection').classList.remove('hidden');document.getElementById('eventTitle').textContent=j.event.title;document.getElementById('eventMeta').textContent=[j.event.event_date,j.event.venue].filter(Boolean).join(' · ');})();
+document.getElementById('form').onsubmit=async e=>{e.preventDefault();document.getElementById('msg').innerHTML='';let d=Object.fromEntries(new FormData(form));let r=await fetch('/api/public/requests',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(d)});let j=await r.json();if(!r.ok){document.getElementById('msg').innerHTML='<div class="notice error">'+esc(j.error)+'</div>';return}document.getElementById('openSection').classList.add('hidden');document.getElementById('done').classList.remove('hidden');document.getElementById('code').textContent=j.publicCode;document.getElementById('statusLink').href=j.statusUrl;};
+</script></body></html>

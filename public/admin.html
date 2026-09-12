@@ -7,24 +7,49 @@
 <section id="eventForm" class="card modal-like hidden"><div class="row between"><div><h3>Nuevo partido / evento</h3><p class="muted">Después podrás abrir o cerrar las acreditaciones.</p></div><button class="btn secondary tiny" onclick="eventForm.classList.add('hidden')">Cerrar</button></div><form id="newEvent"><div class="grid2"><div class="field"><label>Título *</label><input name="title" required placeholder="IDV vs Flamengo"></div><div class="field"><label>Rival</label><input name="opponent"></div><div class="field"><label>Fecha *</label><input name="eventDate" type="datetime-local" required></div><div class="field"><label>Estadio / sede</label><input name="venue" placeholder="Estadio Olímpico Atahualpa"></div><div class="field"><label>Fecha límite de acreditación</label><input name="deadline" type="datetime-local"></div></div><div id="eventMsg"></div><button class="btn primary">Crear evento</button></form></section>
 <section id="requestsSec"><div class="card"><div class="row between mobile"><div><h2>Solicitudes</h2><p class="muted">Revisa y decide quién recibe acreditación.</p></div><div class="row mobile"><select id="eventFilter" onchange="loadRequests()"></select><select id="statusFilter" onchange="loadRequests()"><option value="">Todos los estados</option><option value="pending">Pendientes</option><option value="approved">Aprobados</option><option value="rejected">Rechazados</option><option value="delivered">Entregados</option></select></div></div><div class="table-wrap"><table><thead><tr><th>Persona</th><th>Medio</th><th>Tipo</th><th>Cobertura</th><th>Contacto</th><th>Estado</th><th>Asignación</th><th>Acciones</th></tr></thead><tbody id="requestRows"></tbody></table></div></div></section>
 <section id="vestsSec" class="hidden"><div class="card">
-<div class="row between mobile"><div><h2>Control de chalecos</h2><p class="muted">Consulta rápidamente qué chalecos siguen en uso y quién los tiene.</p></div>
-<select id="vestEventFilter" onchange="loadVests()"></select></div>
+<div class="row between mobile"><div><h2>Control de chalecos</h2><p class="muted">Se actualiza automáticamente con los movimientos registrados desde los QR.</p></div>
+<div class="row mobile"><select id="vestEventFilter" onchange="loadVests()"></select><button class="btn secondary" onclick="loadVests()">↻ Actualizar</button></div></div>
 <div id="vestStats" class="grid3" style="margin-top:16px"></div>
-<div class="table-wrap"><table><thead><tr><th>Chaleco</th><th>Fotógrafo</th><th>Medio</th><th>Estado</th><th>Entrega</th><th>Devolución</th><th>Credencial retenida</th></tr></thead><tbody id="vestRows"></tbody></table></div>
-</div></section>
+<div id="vestSyncInfo" class="notice" style="margin-top:14px">Esperando actualización…</div>
+<div class="table-wrap"><table><thead><tr><th>Chaleco</th><th>Fotógrafo</th><th>Medio</th><th>Estado</th><th>Entrega</th><th>Devolución</th><th>Credencial</th><th>Detalle</th></tr></thead><tbody id="vestRows"></tbody></table></div>
+</div>
+<div id="vestDetail" class="card hidden" style="margin-top:18px"></div>
+</section>
 <section id="eventsSec" class="hidden"><div class="grid3" id="eventCards"></div></section>
 </section></div></main>
 <script>
-let EVENTS=[],REQUESTS=[];
+let EVENTS=[],REQUESTS=[],VESTS=[],ACTIVE_TAB='requests',VEST_TIMER=null;
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
 async function api(url,opt){let r=await fetch(url,opt);let j=await r.json();if(!r.ok)throw new Error(j.error||'Error');return j}
 async function boot(){try{await api('/api/admin/me');loginBox.classList.add('hidden');app.classList.remove('hidden');logoutBtn.classList.remove('hidden');await refresh()}catch{}}
 loginForm.onsubmit=async e=>{e.preventDefault();loginMsg.innerHTML='';try{await api('/api/admin/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(Object.fromEntries(new FormData(loginForm)))});location.reload()}catch(err){loginMsg.innerHTML='<div class="notice error">'+esc(err.message)+'</div>'}}
 async function logout(){await fetch('/api/admin/logout',{method:'POST'});location.reload()}
-function tab(name,b){document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));b.classList.add('active');requestsSec.classList.toggle('hidden',name!=='requests');vestsSec.classList.toggle('hidden',name!=='vests');eventsSec.classList.toggle('hidden',name!=='events');if(name==='vests')loadVests()}
+function tab(name,b){
+  ACTIVE_TAB=name;
+  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));b.classList.add('active');
+  document.getElementById('requestsSec').classList.toggle('hidden',name!=='requests');
+  document.getElementById('vestsSec').classList.toggle('hidden',name!=='vests');
+  document.getElementById('eventsSec').classList.toggle('hidden',name!=='events');
+  if(VEST_TIMER){clearInterval(VEST_TIMER);VEST_TIMER=null;}
+  if(name==='vests'){
+    loadVests();
+    VEST_TIMER=setInterval(()=>{if(ACTIVE_TAB==='vests')loadVests(true)},5000);
+  }
+}
 function showEventForm(){eventForm.classList.remove('hidden');eventForm.scrollIntoView({behavior:'smooth'})}
 newEvent.onsubmit=async e=>{e.preventDefault();eventMsg.innerHTML='';let d=Object.fromEntries(new FormData(newEvent));try{await api('/api/admin/events',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(d)});newEvent.reset();eventForm.classList.add('hidden');await refresh()}catch(err){eventMsg.innerHTML='<div class="notice error">'+esc(err.message)+'</div>'}}
-async function refresh(){EVENTS=await api('/api/admin/events');renderEvents();let old=eventFilter.value;eventFilter.innerHTML='<option value="">Todos los eventos</option>'+EVENTS.map(e=>`<option value="${e.id}">${esc(e.title)}</option>`).join('');if([...eventFilter.options].some(o=>o.value===old))eventFilter.value=old;let vold=vestEventFilter?.value||'';if(window.vestEventFilter){vestEventFilter.innerHTML='<option value="">Todos los eventos</option>'+EVENTS.map(e=>`<option value="${e.id}">${esc(e.title)}</option>`).join('');if([...vestEventFilter.options].some(o=>o.value===vold))vestEventFilter.value=vold;}await loadRequests()}
+async function refresh(){
+  EVENTS=await api('/api/admin/events');renderEvents();
+  const eventSel=document.getElementById('eventFilter');
+  const old=eventSel.value;
+  eventSel.innerHTML='<option value="">Todos los eventos</option>'+EVENTS.map(e=>`<option value="${e.id}">${esc(e.title)}</option>`).join('');
+  if([...eventSel.options].some(o=>o.value===old))eventSel.value=old;
+  const vestSel=document.getElementById('vestEventFilter');
+  const vold=vestSel.value;
+  vestSel.innerHTML='<option value="">Todos los eventos</option>'+EVENTS.map(e=>`<option value="${e.id}">${esc(e.title)}</option>`).join('');
+  if([...vestSel.options].some(o=>o.value===vold))vestSel.value=vold;
+  await loadRequests();
+}
 function renderEvents(){eventCards.innerHTML=EVENTS.map(e=>`<div class="card"><div class="row between"><span class="badge ${e.status}">${e.status.toUpperCase()}</span><span class="muted">${e.pending_requests} pendientes</span></div><h3 style="margin-top:14px">${esc(e.title)}</h3><p class="muted">${esc(e.event_date)}${e.venue?' · '+esc(e.venue):''}</p><p class="muted">${e.total_requests} solicitudes</p><div class="actions"><button class="btn primary tiny" onclick="setEventStatus(${e.id},'open')">Abrir</button><button class="btn secondary tiny" onclick="setEventStatus(${e.id},'closed')">Cerrar</button><button class="btn secondary tiny" onclick="setEventStatus(${e.id},'archived')">Archivar</button><a class="btn secondary tiny" href="/api/admin/events/${e.id}/security.csv">Descargar lista seguridad CSV</a></div></div>`).join('')||'<div class="card">Aún no hay eventos.</div>'}
 async function setEventStatus(id,status){await api('/api/admin/events/'+id,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({status})});await refresh()}
 async function loadRequests(){let q=new URLSearchParams();if(eventFilter.value)q.set('eventId',eventFilter.value);if(statusFilter.value)q.set('status',statusFilter.value);REQUESTS=await api('/api/admin/requests?'+q);renderRequests()}
@@ -34,13 +59,51 @@ async function reject(id){let n=prompt('Motivo o nota para el solicitante (opcio
 async function notes(id){let r=REQUESTS.find(x=>x.id===id);let n=prompt('Nota visible en el estado de la solicitud:',r.admin_notes||'');if(n!==null)await setRequest(id,{adminNotes:n})}
 async function removeReq(id){if(confirm('¿Eliminar esta solicitud?')){await api('/api/admin/requests/'+id,{method:'DELETE'});await loadRequests()}}
 
-async function loadVests(){
-  let q=new URLSearchParams(); if(window.vestEventFilter&&vestEventFilter.value)q.set('eventId',vestEventFilter.value);
-  let rows=await api('/api/admin/vests?'+q);
-  const out=rows.filter(x=>x.status==='out'),ret=rows.filter(x=>x.status==='returned');
-  vestStats.innerHTML=`<div class="card stat"><strong>${out.length}</strong><span>Pendientes de devolución</span></div><div class="card stat"><strong>${ret.length}</strong><span>Devueltos</span></div><div class="card stat"><strong>${rows.length}</strong><span>Chalecos registrados</span></div>`;
-  vestRows.innerHTML=rows.map(v=>`<tr><td><b>N.º ${esc(v.vest_number)}</b></td><td>${esc(v.first_name+' '+v.last_name)}</td><td>${esc(v.media_name)}</td><td><span class="badge ${v.status==='out'?'rejected':'approved'}">${v.status==='out'?'EN USO':'DEVUELTO'}</span></td><td>${esc(v.checkout_at||'')}</td><td>${esc(v.returned_at||'—')}</td><td>${v.credential_retained?'Sí':'No'}</td></tr>`).join('')||'<tr><td colspan="7">No hay movimientos de chalecos.</td></tr>';
+async function loadVests(silent=false){
+  const select=document.getElementById('vestEventFilter');
+  const stats=document.getElementById('vestStats');
+  const rowsEl=document.getElementById('vestRows');
+  const info=document.getElementById('vestSyncInfo');
+  try{
+    const q=new URLSearchParams();
+    if(select && select.value) q.set('eventId',select.value);
+    VESTS=await api('/api/admin/vests?'+q.toString());
+    const out=VESTS.filter(x=>x.status==='out'), ret=VESTS.filter(x=>x.status==='returned');
+    const retained=out.filter(x=>Number(x.credential_retained)===1).length;
+    stats.innerHTML=`<div class="card stat"><strong>${out.length}</strong><span>Pendientes de devolución</span></div><div class="card stat"><strong>${ret.length}</strong><span>Devueltos</span></div><div class="card stat"><strong>${retained}</strong><span>Credenciales retenidas ahora</span></div>`;
+    rowsEl.innerHTML=VESTS.map(v=>`<tr>
+      <td><b>N.º ${esc(v.vest_number)}</b></td>
+      <td><b>${esc(v.first_name+' '+v.last_name)}</b><br><span class="muted">${esc(v.public_code||'')}</span></td>
+      <td>${esc(v.media_name)}</td>
+      <td><span class="badge ${v.status==='out'?'rejected':'approved'}">${v.status==='out'?'EN USO':'DEVUELTO'}</span></td>
+      <td>${formatDT(v.checkout_at)}</td>
+      <td>${v.returned_at?formatDT(v.returned_at):'—'}</td>
+      <td>${Number(v.credential_retained)===1?(v.status==='out'?'RETENIDA':'DEVUELTA / RECORDATORIO'):'No retenida'}</td>
+      <td><button class="btn secondary tiny" onclick="showVestDetail(${v.id})">Ver registro</button></td>
+    </tr>`).join('')||'<tr><td colspan="8">No hay movimientos de chalecos para este evento todavía.</td></tr>';
+    info.className='notice success';
+    info.textContent=`Actualizado ${new Date().toLocaleTimeString()} · ${VESTS.length} movimiento(s) encontrados.`;
+  }catch(err){
+    info.className='notice error';
+    info.textContent='No se pudo actualizar chalecos: '+err.message;
+    if(!silent) console.error(err);
+  }
 }
+function formatDT(v){
+  if(!v)return '—';
+  const d=new Date(v.includes('T')?v:v.replace(' ','T')+'Z');
+  return Number.isNaN(d.getTime())?esc(v):d.toLocaleString();
+}
+function showVestDetail(id){
+  const v=VESTS.find(x=>Number(x.id)===Number(id)); if(!v)return;
+  const d=document.getElementById('vestDetail');
+  d.classList.remove('hidden');
+  d.innerHTML=`<div class="row between mobile"><div><div class="eyebrow">Registro de chaleco</div><h2>Chaleco N.º ${esc(v.vest_number)}</h2><p class="muted">${esc(v.first_name+' '+v.last_name)} · ${esc(v.media_name)}</p></div><button class="btn secondary" onclick="document.getElementById('vestDetail').classList.add('hidden')">Cerrar</button></div>
+  <div class="kv"><div><small>ESTADO</small><strong>${v.status==='out'?'En uso':'Devuelto'}</strong></div><div><small>CREDENCIAL RETENIDA</small><strong>${Number(v.credential_retained)===1?'Sí':'No'}</strong></div><div><small>ENTREGA</small><strong>${formatDT(v.checkout_at)}</strong></div><div><small>DEVOLUCIÓN</small><strong>${v.returned_at?formatDT(v.returned_at):'Pendiente'}</strong></div></div>
+  <div class="grid2" style="margin-top:18px"><div><h3>Firma de recepción</h3>${v.checkout_signature?`<img class="signature-preview" src="${v.checkout_signature}" alt="Firma de recepción">`:'<div class="notice">Sin firma guardada.</div>'}</div><div><h3>Firma de devolución</h3>${v.return_signature?`<img class="signature-preview" src="${v.return_signature}" alt="Firma de devolución">`:'<div class="notice">Aún no hay firma de devolución.</div>'}</div></div>`;
+  d.scrollIntoView({behavior:'smooth',block:'start'});
+}
+
 boot();
 
 </script></body></html>

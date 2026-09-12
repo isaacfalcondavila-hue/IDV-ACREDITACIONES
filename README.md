@@ -1,4 +1,4 @@
-# IDV Acreditaciones v5
+# IDV Acreditaciones v5.1
 
 Versión basada en el flujo real tipo Google Forms:
 
@@ -132,3 +132,13 @@ El teléfono que usará el personal de acreditaciones debe iniciar sesión una v
 
 Después, al escanear los QR con ese mismo navegador, la ficha mostrará también los controles internos de credencial y chaleco.
 Un teléfono que no tenga sesión de administrador solamente verá la información pública de verificación.
+
+
+## Corrección v5.1 — Panel de chalecos
+- Actualización automática cada 5 segundos mientras la pestaña Chalecos está abierta.
+- Botón Actualizar manual.
+- Selector de evento más robusto (sin depender de variables globales del navegador).
+- Contadores de pendientes, devueltos y credenciales retenidas.
+- Detalle completo por movimiento.
+- Vista de firma de recepción y firma de devolución.
+- Mensaje visible de sincronización/error para detectar problemas de servidor.

@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>IDV | Prensa escrita</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">
+    <div class="logo">IDV</div>
+    <div>
+      <b>Independiente del Valle</b>
+      <small>Acreditaciones de prensa</small>
+    </div>
+  </div>
+  <a href="/" class="btn secondary tiny">← Volver</a>
+</header>
+
+<main>
+<div class="wrap">
+  <section id="closed" class="card status-card hidden">
+    <div class="status-icon">—</div>
+    <div class="eyebrow">Acreditaciones</div>
+    <h2>No hay acreditaciones abiertas</h2>
+    <p class="lead" style="margin:10px auto 0">El período de registro está cerrado.</p>
+    <a href="/" class="btn secondary" style="margin-top:18px">Volver al inicio</a>
+  </section>
+
+  <section id="formSection" class="hidden form-page">
+    <div class="form-page-head">
+      <div class="form-type-icon">✎</div>
+      <div>
+        <div class="eyebrow">Registro · Prensa escrita</div>
+        <h1>Prensa escrita</h1>
+        <p class="lead">Formulario para periodistas, redactores, comentaristas y representantes de medios.</p>
+      </div>
+    </div>
+
+    <div class="event-strip compact">
+      <div>
+        <small>EVENTO</small>
+        <strong id="eventTitle">Próximo partido</strong>
+      </div>
+      <span id="eventMeta"></span>
+    </div>
+
+    <div class="card hero-card">
+      <div class="form-intro">
+        <h2>Solicitud de acreditación</h2>
+        <p class="muted">Completa la información solicitada. Todos los campos marcados con * son obligatorios.</p>
+      </div>
+
+      <form id="form">
+        <input type="hidden" name="category" value="press">
+        <div class="grid2">
+          <div class="field">
+            <label>Medio de comunicación *</label>
+            <input name="mediaName" required placeholder="Ej.: La Red, ESPN, Primicias">
+          </div>
+          <div class="field">
+            <label>Cargo / función *</label>
+            <input name="roleTitle" required placeholder="Ej.: Periodista deportivo, comentarista, redactor">
+          </div>
+          <div class="field">
+            <label>Nombres *</label>
+            <input name="firstName" required autocomplete="given-name">
+          </div>
+          <div class="field">
+            <label>Apellidos *</label>
+            <input name="lastName" required autocomplete="family-name">
+          </div>
+          <div class="field">
+            <label>Cédula / Pasaporte *</label>
+            <input name="document" required>
+          </div>
+          <div class="field">
+            <label>Correo *</label>
+            <input name="email" type="email" required autocomplete="email">
+          </div>
+          <div class="field">
+            <label>Teléfono *</label>
+            <input name="phone" required autocomplete="tel">
+          </div>
+          <div class="field field-disabled-look">
+            <label>Tipo de acreditación</label>
+            <input value="Prensa escrita" readonly tabindex="-1">
+          </div>
+          <div class="field" style="grid-column:1/-1">
+            <label>¿Qué cobertura vas a realizar? *</label>
+            <textarea name="coverage" rows="3" required placeholder="Describe brevemente la cobertura prevista"></textarea>
+          </div>
+          <div class="field" style="grid-column:1/-1">
+            <label>Observaciones</label>
+            <textarea name="notes" rows="3" placeholder="Información adicional (opcional)"></textarea>
+          </div>
+        </div>
+        <div id="msg"></div>
+        <button class="btn primary submit-accreditation">Enviar solicitud de prensa escrita</button>
+      </form>
+    </div>
+  </section>
+
+  <section id="done" class="card status-card hidden">
+    <div class="status-icon">✓</div>
+    <div class="eyebrow">Solicitud recibida</div>
+    <h2>Tu solicitud está pendiente</h2>
+    <p class="lead" style="margin:10px auto">IDV revisará tu información. Guarda este código para consultar el estado.</p>
+    <div class="card request-code-card">
+      <small class="muted">CÓDIGO DE SOLICITUD</small>
+      <h2 class="code" id="code"></h2>
+    </div>
+    <div class="row status-actions">
+      <a id="statusLink" class="btn primary">Consultar estado</a>
+      <a href="/" class="btn secondary">Volver al inicio</a>
+    </div>
+  </section>
+</div>
+</main>
+
+<script>
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
+
+(async()=>{
+  try{
+    const r=await fetch('/api/public/event');
+    const j=await r.json();
+    if(!j.event){
+      document.getElementById('closed').classList.remove('hidden');
+      return;
+    }
+    document.getElementById('formSection').classList.remove('hidden');
+    document.getElementById('eventTitle').textContent=j.event.title;
+    document.getElementById('eventMeta').textContent=[j.event.event_date,j.event.venue].filter(Boolean).join(' · ');
+  }catch{
+    document.getElementById('closed').classList.remove('hidden');
+  }
+})();
+
+document.getElementById('form').onsubmit=async e=>{
+  e.preventDefault();
+  const msg=document.getElementById('msg');
+  msg.innerHTML='';
+  const btn=e.submitter;
+  if(btn){btn.disabled=true;btn.textContent='Enviando solicitud...';}
+  try{
+    const d=Object.fromEntries(new FormData(e.currentTarget));
+    const r=await fetch('/api/public/requests',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(d)});
+    const j=await r.json();
+    if(!r.ok) throw new Error(j.error||'No se pudo enviar la solicitud.');
+    document.getElementById('formSection').classList.add('hidden');
+    document.getElementById('done').classList.remove('hidden');
+    document.getElementById('code').textContent=j.publicCode;
+    document.getElementById('statusLink').href=j.statusUrl;
+    window.scrollTo({top:0,behavior:'smooth'});
+  }catch(err){
+    msg.innerHTML='<div class="notice error">'+esc(err.message)+'</div>';
+  }finally{
+    if(btn){btn.disabled=false;btn.textContent='Enviar solicitud de prensa escrita';}
+  }
+};
+</script>
+</body>
+</html>

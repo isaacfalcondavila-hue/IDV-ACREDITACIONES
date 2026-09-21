@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>IDV | Verificar acreditación</title>
+  <link rel="stylesheet" href="/styles.css">
+  
+</head>
+<body class="verify-page">
+
+<header class="topbar">
+  <div class="brand-cluster">
+    <div class="brand">
+      <div class="logo">IDV</div>
+      <div>
+        <b>Verificación de acreditación</b>
+        <small>Independiente del Valle</small>
+      </div>
+    </div>
+    <div class="brand-marks" aria-label="Escudos institucionales">
+      <img src="/logos/idv.png" alt="Escudo Independiente del Valle">
+      <img src="/logos/juniors.png" alt="Escudo Independiente Juniors">
+      <img src="/logos/dragonas.png" alt="Escudo Dragonas IDV">
+    </div>
+  </div>
+  <div class="topbar-actions"></div>
+</header>
+
+<main><div class="wrap">
+<div class="status-editorial-head">
+  <div class="press-section-label">CONTROL DE ACCESO</div>
+  <h1>Verificación de acreditación</h1>
+  <p class="lead">Validación oficial de la acreditación presentada para el evento.</p>
+</div>
+<section class="card status-card" id="box"><p class="muted">Verificando...</p></section>
+<section id="staffBox" class="card glass hidden" style="max-width:820px;margin:18px auto"></section>
+<script>
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
+const accreditationTypeName=(v,c)=>c==='photo'||v==='fotografo'?'Fotógrafo':({
+  medio_digital:'Medio digital',prensa_escrita:'Prensa escrita',radio:'Radio',tv:'TV',camarografo:'Camarógrafo'
+})[v]||'Medio de comunicación';
+const token=new URLSearchParams(location.search).get('t')||'';
+let PUBLIC=null, STAFF=null;
+async function getJson(url,opt){
+  const r=await fetch(url,opt); let j={};
+  try{ j=await r.json(); }catch{}
+  if(!r.ok) throw new Error(j.error||'Error');
+  return j;
+}
+async function load(){
+  try{ PUBLIC=await getJson('/api/public/verify/'+encodeURIComponent(token)); renderPublic(); }
+  catch(e){ box.innerHTML='<div class="notice error">'+esc(e.message)+'</div>'; return; }
+  try{ STAFF=await getJson('/api/admin/scan/'+encodeURIComponent(token)); staffBox.classList.remove('hidden'); renderStaff(); }
+  catch{}
+}
+function renderPublic(){
+  const ok=['approved','delivered'].includes(PUBLIC.status);
+  box.innerHTML=`<div class="status-icon">${ok?'✓':'×'}</div>
+    <div class="eyebrow">${esc(PUBLIC.title)}</div>
+    <h2>${ok?'Acreditación válida':'Acreditación no válida'}</h2>
+    <div class="kv">
+      <div><small>NOMBRE</small><strong>${esc(PUBLIC.first_name+' '+PUBLIC.last_name)}</strong></div>
+      <div><small>MEDIO</small><strong>${esc(PUBLIC.media_name)}</strong></div>
+      <div><small>TIPO</small><strong>${esc(accreditationTypeName(PUBLIC.accreditation_type,PUBLIC.category))}</strong></div>
+<div><small>NACIONALIDAD</small><strong>${esc(PUBLIC.nationality||'—')}</strong></div>
+      <div><small>FUNCIÓN</small><strong>${esc(PUBLIC.role_title)}</strong></div>
+      <div><small>ASIGNACIÓN</small><strong>${esc(PUBLIC.assignment||'Por asignar')}</strong></div>
+      <div><small>ESTADO</small><strong>${PUBLIC.status==='delivered'?'Credencial entregada':'Aprobado'}</strong></div>
+      <div><small>ASISTENCIA</small><strong>${PUBLIC.attendance_status==='present'?'Registrada':'Pendiente'}</strong></div>
+      <div><small>EVENTO</small><strong>${esc(PUBLIC.venue||'IDV')}</strong></div>
+    </div>
+    ${PUBLIC.attendance_status==='present'&&PUBLIC.attendance_at?`<div class="notice success">Asistencia registrada el ${esc(new Date(PUBLIC.attendance_at).toLocaleString())}.</div>`:''}
+    ${PUBLIC.category==='photo'&&PUBLIC.vest?`<div class="notice ${PUBLIC.vest.status==='out'?'info':'success'}">Chaleco N.º <b>${esc(PUBLIC.vest.vest_number)}</b> · ${PUBLIC.vest.status==='out'?'EN USO':'DEVUELTO'}</div>`:''}`;
+}
+function sigPad(canvasId,clearId){
+  const c=document.getElementById(canvasId),ctx=c.getContext('2d');
+  function resize(){const r=c.getBoundingClientRect(),d=devicePixelRatio||1;c.width=r.width*d;c.height=r.height*d;ctx.setTransform(d,0,0,d,0,0);ctx.lineWidth=2;ctx.lineCap='round';ctx.strokeStyle='#fff'}
+  resize(); let draw=false;
+  const pos=e=>{const r=c.getBoundingClientRect(),p=e.touches?e.touches[0]:e;return [p.clientX-r.left,p.clientY-r.top]};
+  const start=e=>{e.preventDefault();draw=true;ctx.beginPath();let [x,y]=pos(e);ctx.moveTo(x,y)};
+  const move=e=>{if(!draw)return;e.preventDefault();let[x,y]=pos(e);ctx.lineTo(x,y);ctx.stroke()};
+  const end=()=>{draw=false};
+  c.addEventListener('pointerdown',start);c.addEventListener('pointermove',move);window.addEventListener('pointerup',end);
+  document.getElementById(clearId).onclick=()=>ctx.clearRect(0,0,c.width,c.height);
+  return ()=>c.toDataURL('image/png');
+}
+function renderStaff(){
+  const r=STAFF.request, v=STAFF.vest;
+  let controls=`<div class="eyebrow">OPERACIÓN IDV · PERSONAL AUTORIZADO</div><h3>${esc(r.first_name+' '+r.last_name)}</h3><p class="muted">${esc(r.media_name)} · ${esc(accreditationTypeName(r.accreditation_type,r.category))}</p>
+  ${r.accreditation_type==='camarografo'?'<div class="notice info"><b>Acceso:</b> válido únicamente para sala de rueda de prensa.</div>':''}`;
+  if(r.attendance_status==='present'){
+    controls += `<div class="notice success">✓ Asistencia registrada${r.attendance_at?` el ${esc(new Date(r.attendance_at).toLocaleString())}`:''}.</div>`;
+  } else if(['approved','delivered'].includes(r.status)){
+    controls += `<div class="notice info">Aún no se ha marcado asistencia. <button class="btn primary tiny" onclick="markAttendance()">Registrar asistencia</button></div>`;
+  }
+  if(r.status==='approved') controls+=`<div class="notice">La acreditación está aprobada. <button class="btn primary tiny" onclick="markDelivered()">Marcar credencial física entregada</button></div>`;
+  if(r.status==='delivered') controls+=`<div class="notice success">✓ Credencial física registrada como entregada.</div>`;
+  if(r.category==='photo'){
+    if(!v){
+      controls+=`<hr style="margin:22px 0"><h3>Entrega de chaleco</h3><p class="muted">Registra el número, confirma si retienes la credencial y solicita la firma del fotógrafo.</p>
+      <div class="field"><label>Número de chaleco</label><input id="vestNo" inputmode="numeric" placeholder="Ej.: 27"></div>
+      <label style="display:flex;gap:10px;align-items:center;margin:12px 0"><input id="retained" type="checkbox" checked style="width:auto"> <span>Credencial/documento retenido en mesa</span></label>
+      <div class="field"><label>Firma de recepción</label><canvas id="sigOut" class="signature"></canvas><button id="clearOut" class="btn secondary tiny" type="button">Limpiar firma</button></div>
+      <div id="vestMsg"></div><button class="btn primary full" onclick="checkoutVest()">Registrar entrega de chaleco</button>`;
+    }else if(v.status==='out'){
+      controls+=`<div class="notice info"><b>Chaleco N.º ${esc(v.vest_number)} EN USO</b><br>Entregado: ${esc(v.checkout_at)}<br>${v.credential_retained?'Credencial retenida: Sí':'Credencial retenida: No'}</div>
+      <h3>Devolución de chaleco</h3>
+      <div class="field"><label>Número devuelto</label><input id="returnVestNo" value="${esc(v.vest_number)}"></div>
+      <div class="field"><label>Firma de devolución</label><canvas id="sigReturn" class="signature"></canvas><button id="clearReturn" class="btn secondary tiny" type="button">Limpiar firma</button></div>
+      <div id="vestMsg"></div><button class="btn primary full" onclick="returnVest()">Confirmar devolución</button>`;
+    }else{
+      controls+=`<div class="notice success"><b>✓ Chaleco N.º ${esc(v.vest_number)} devuelto</b><br>Devolución: ${esc(v.returned_at||'')}</div>${v.credential_retained?'<div class="notice">✓ Proceso completado. Recuerda devolver la credencial/documento retenido al fotógrafo.</div>':''}`;
+    }
+  }
+  staffBox.innerHTML=controls;
+  if(r.category==='photo'&&!v) window.getOutSig=sigPad('sigOut','clearOut');
+  if(r.category==='photo'&&v&&v.status==='out') window.getReturnSig=sigPad('sigReturn','clearReturn');
+}
+async function markAttendance(){ try{ await getJson('/api/admin/attendance/'+STAFF.request.id,{method:'POST'}); await reloadStaff(); }catch(e){ alert(e.message); } }
+async function markDelivered(){ try{ await getJson('/api/admin/requests/'+STAFF.request.id,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({status:'delivered'})}); await reloadStaff(); }catch(e){ alert(e.message); } }
+async function checkoutVest(){ try{ await getJson('/api/admin/vests/checkout/'+STAFF.request.id,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({ vestNumber:document.getElementById('vestNo').value, credentialRetained:document.getElementById('retained').checked, signature:window.getOutSig() })}); await reloadStaff(); }catch(e){ document.getElementById('vestMsg').innerHTML='<div class="notice error">'+esc(e.message)+'</div>'; } }
+async function returnVest(){ try{ const j=await getJson('/api/admin/vests/return/'+STAFF.request.id,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({ vestNumber:document.getElementById('returnVestNo').value, signature:window.getReturnSig() })}); await reloadStaff(); if(j.credentialRetained) alert('Chaleco devuelto correctamente. Devuelve la credencial/documento retenido al fotógrafo.'); }catch(e){ document.getElementById('vestMsg').innerHTML='<div class="notice error">'+esc(e.message)+'</div>'; } }
+async function reloadStaff(){ STAFF=await getJson('/api/admin/scan/'+encodeURIComponent(token)); PUBLIC=await getJson('/api/public/verify/'+encodeURIComponent(token)); renderPublic(); renderStaff(); }
+load();
+</script>
+</div></main>
+</body>
+</html>

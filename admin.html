@@ -1,0 +1,653 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>IDV | Administración</title>
+  <link rel="stylesheet" href="/styles.css">
+  
+</head>
+<body class="admin-page">
+
+<header class="topbar">
+  <div class="brand-cluster">
+    <div class="brand">
+      <div class="logo">IDV</div>
+      <div>
+        <b>Administración IDV</b>
+        <small>Acreditaciones de prensa</small>
+      </div>
+    </div>
+    <div class="brand-marks" aria-label="Escudos institucionales">
+      <img src="/logos/idv.png" alt="Escudo Independiente del Valle">
+      <img src="/logos/juniors.png" alt="Escudo Independiente Juniors">
+      <img src="/logos/dragonas.png" alt="Escudo Dragonas IDV">
+    </div>
+  </div>
+  <div class="topbar-actions"><button id="logoutBtn" class="btn secondary tiny hidden" onclick="logout()">Salir</button></div>
+</header>
+
+<main><div class="wrap">
+<section id="loginBox" class="admin-login-shell">
+  <div class="admin-login-intro">
+    <div class="eyebrow">Departamento de Comunicación y Prensa</div>
+    <div class="public-competition-badge">USO INTERNO</div>
+    <h1>Administración de acreditaciones</h1>
+    <p class="lead">
+      Gestión interna de solicitudes, partidos, asistencia, chalecos y acreditaciones de prensa.
+    </p>
+    <div class="admin-login-meta">
+      <span>INDEPENDIENTE DEL VALLE</span>
+      <strong>Control institucional de prensa</strong>
+    </div>
+  </div>
+
+  <div class="card glass admin-login-card">
+    <div class="press-section-label">ACCESO AUTORIZADO</div>
+    <h2>Acceso IDV</h2>
+    <p class="muted">Ingresa con las credenciales administrativas asignadas.</p>
+    <form id="loginForm">
+      <div class="field"><label>Correo</label><input name="email" type="email" required></div>
+      <div class="field"><label>Contraseña</label><input name="password" type="password" required></div>
+      <div id="loginMsg"></div>
+      <button class="btn primary full">Ingresar</button>
+    </form>
+  </div>
+</section>
+
+<section id="app" class="hidden">
+  <div class="admin-head">
+    <div>
+      <div class="eyebrow">Departamento de Comunicación y Prensa · Panel interno</div>
+      <h1>Control de acreditaciones</h1>
+      <p class="admin-head-copy">Gestión operativa de convocatorias, medios, fotógrafos y control de acceso.</p>
+    </div>
+    <button class="btn primary" onclick="showEventForm()">+ Crear partido</button>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" onclick="tab('requests',this)">Solicitudes</button>
+    <button class="tab" onclick="tab('interviews',this)">Entrevistas <span id="interviewTabCount" class="tab-count"></span></button>
+    <button class="tab" onclick="tab('vests',this)">Chalecos</button>
+    <button class="tab" onclick="tab('events',this)">Partidos / eventos</button>
+  </div>
+
+  <section id="eventForm" class="card glass hidden" style="margin-bottom:18px">
+    <div class="row between mobile">
+      <div><h3>Nuevo partido / evento</h3><p class="muted">Después podrás abrir o cerrar las acreditaciones.</p></div>
+      <button class="btn secondary tiny" onclick="eventForm.classList.add('hidden')">Cerrar</button>
+    </div>
+    <form id="newEvent">
+      <div class="grid2">
+        <div class="field"><label>Título *</label><input name="title" required></div>
+        <div class="field"><label>Rival</label><input name="opponent"></div>
+
+        <div class="field">
+          <label>Fecha y hora del partido *</label>
+          <div class="datetime-12h">
+            <input id="eventDateDate" type="date" required aria-label="Fecha del partido">
+            <select id="eventDateHour" required aria-label="Hora del partido">
+              <option value="">Hora</option>
+              <option value="01">01</option>
+              <option value="02">02</option>
+              <option value="03">03</option>
+              <option value="04">04</option>
+              <option value="05">05</option>
+              <option value="06">06</option>
+              <option value="07">07</option>
+              <option value="08">08</option>
+              <option value="09">09</option>
+              <option value="10">10</option>
+              <option value="11">11</option>
+              <option value="12">12</option>
+            </select>
+            <span class="time-separator">:</span>
+            <select id="eventDateMinute" required aria-label="Minutos del partido">
+              <option value="">Min</option>
+              <option value="00">00</option>
+              <option value="05">05</option>
+              <option value="10">10</option>
+              <option value="15">15</option>
+              <option value="20">20</option>
+              <option value="25">25</option>
+              <option value="30">30</option>
+              <option value="35">35</option>
+              <option value="40">40</option>
+              <option value="45">45</option>
+              <option value="50">50</option>
+              <option value="55">55</option>
+            </select>
+            <select id="eventDatePeriod" required aria-label="AM o PM">
+              <option value="">AM/PM</option>
+              <option value="AM">AM</option>
+              <option value="PM">PM</option>
+            </select>
+          </div>
+          <small class="field-help">Selecciona la hora en formato de 12 horas e indica AM o PM.</small>
+        </div>
+
+        <div class="field"><label>Estadio / sede</label><input name="venue"></div>
+
+        <div class="field">
+          <label>Fecha límite de acreditación</label>
+          <div class="datetime-12h">
+            <input id="deadlineDate" type="date" aria-label="Fecha límite">
+            <select id="deadlineHour" aria-label="Hora límite">
+              <option value="">Hora</option>
+              <option value="01">01</option>
+              <option value="02">02</option>
+              <option value="03">03</option>
+              <option value="04">04</option>
+              <option value="05">05</option>
+              <option value="06">06</option>
+              <option value="07">07</option>
+              <option value="08">08</option>
+              <option value="09">09</option>
+              <option value="10">10</option>
+              <option value="11">11</option>
+              <option value="12">12</option>
+            </select>
+            <span class="time-separator">:</span>
+            <select id="deadlineMinute" aria-label="Minutos límite">
+              <option value="">Min</option>
+              <option value="00">00</option>
+              <option value="05">05</option>
+              <option value="10">10</option>
+              <option value="15">15</option>
+              <option value="20">20</option>
+              <option value="25">25</option>
+              <option value="30">30</option>
+              <option value="35">35</option>
+              <option value="40">40</option>
+              <option value="45">45</option>
+              <option value="50">50</option>
+              <option value="55">55</option>
+            </select>
+            <select id="deadlinePeriod" aria-label="AM o PM de la fecha límite">
+              <option value="">AM/PM</option>
+              <option value="AM">AM</option>
+              <option value="PM">PM</option>
+            </select>
+          </div>
+          <small class="field-help">Opcional. Si defines una fecha límite, completa también hora, minutos y AM/PM.</small>
+        </div>
+        <div class="field">
+          <label>Competición *</label>
+          <select name="competition" required>
+            <option value="auto">Detectar automáticamente por el título</option>
+            <option value="libertadores">CONMEBOL Libertadores</option>
+            <option value="sudamericana">CONMEBOL Sudamericana</option>
+            <option value="copa_ecuador">Copa Ecuador</option>
+            <option value="other">Otra competición</option>
+          </select>
+          <small class="field-help">Libertadores activa automáticamente la información previa y el Manual de Clubes en el correo de aprobación.</small>
+        </div>
+      </div>
+      <div id="eventMsg"></div>
+      <button class="btn primary">Crear evento</button>
+    </form>
+  </section>
+
+  <section id="requestsSec">
+    <div class="card glass">
+      <div class="row between mobile">
+        <div><h2>Solicitudes</h2><p class="muted">Revisa quién fue aprobado, quién asistió y quién no se presentó.</p></div>
+        <div class="row mobile">
+          <select id="eventFilter" onchange="loadRequests()"></select>
+          <select id="statusFilter" onchange="loadRequests()">
+            <option value="">Todos los estados</option>
+            <option value="pending">Pendientes</option>
+            <option value="approved">Aprobados</option>
+            <option value="rejected">Rechazados</option>
+            <option value="delivered">Entregados</option>
+          </select>
+          <select id="attendanceFilter" onchange="loadRequests()">
+            <option value="">Toda la asistencia</option>
+            <option value="present">Asistencia registrada</option>
+            <option value="absent">Sin asistencia registrada</option>
+          </select>
+        </div>
+      </div>
+      <div class="table-wrap compact-table">
+        <table>
+          <thead>
+            <tr><th>Persona</th><th>Medio</th><th>Tipo</th><th>Contacto</th><th>Estado</th><th>Asignación</th><th>Asistencia</th><th>Acciones</th></tr>
+          </thead>
+          <tbody id="requestRows"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section id="interviewsSec" class="hidden">
+    <div class="card glass">
+      <div class="row between mobile">
+        <div>
+          <h2>Solicitudes de entrevista</h2>
+          <p class="muted">Solicitudes disponibles durante todo el año. Aprueba o rechaza cada pedido desde aquí.</p>
+        </div>
+        <select id="interviewStatusFilter" onchange="loadInterviews()">
+          <option value="">Todos los estados</option>
+          <option value="pending">Pendientes</option>
+          <option value="approved">Aprobadas</option>
+          <option value="rejected">Rechazadas</option>
+        </select>
+      </div>
+
+      <div id="interviewStats" class="grid3 interview-stats" style="margin-top:18px"></div>
+
+      <div class="table-wrap interview-table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Entrevistado</th>
+              <th>Medio / programa</th>
+              <th>Periodista(s)</th>
+              <th>Fecha / hora</th>
+              <th>Duración / vía</th>
+              <th>Temas</th>
+              <th>Contacto</th>
+              <th>Estado</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="interviewRows"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section id="vestsSec" class="hidden">
+    <div class="card glass">
+      <div class="row between mobile">
+        <div><h2>Control de chalecos</h2><p class="muted">Se actualiza automáticamente con los movimientos registrados desde los QR.</p></div>
+        <div class="row mobile"><select id="vestEventFilter" onchange="loadVests()"></select><button class="btn secondary" onclick="loadVests()">↻ Actualizar</button></div>
+      </div>
+      <div id="vestStats" class="grid3" style="margin-top:16px"></div>
+      <div id="vestSyncInfo" class="notice info" style="margin-top:14px">Esperando actualización…</div>
+      <div id="vestDebug" class="notice hidden" style="margin-top:10px"></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Chaleco</th><th>Fotógrafo</th><th>Medio</th><th>Estado</th><th>Entrega</th><th>Devolución</th><th>Credencial</th><th>Detalle</th></tr></thead>
+          <tbody id="vestRows"></tbody>
+        </table>
+      </div>
+    </div>
+    <div id="vestDetail" class="card glass hidden" style="margin-top:18px"></div>
+  </section>
+
+  <section id="eventsSec" class="hidden">
+    <div class="event-subnav">
+      <button id="currentEventsBtn" class="btn secondary event-view-btn active" onclick="setEventView('current')">
+        Partidos / eventos
+      </button>
+      <button id="archivedEventsBtn" class="btn secondary event-view-btn" onclick="setEventView('archived')">
+        Archivados
+      </button>
+    </div>
+    <div id="eventViewInfo" class="muted event-view-info"></div>
+    <div class="grid3" id="eventCards"></div>
+  </section>
+</section>
+
+<script>
+let EVENTS=[],REQUESTS=[],INTERVIEWS=[],VESTS=[],ACTIVE_TAB='requests',VEST_TIMER=null,EVENT_VIEW='current';
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
+const statusLabel=s=>({pending:'Pendiente',approved:'Aprobado',rejected:'Rechazado',delivered:'Entregada'})[s]||s;
+const interviewModeLabel=s=>({radial:'Radial',presencial:'Presencial',zoom:'Zoom'})[s]||s;
+async function api(url,opt){
+  const r=await fetch(url,opt);
+  const ct=(r.headers.get('content-type')||'').toLowerCase();
+  const raw=await r.text();
+  let j=null;
+  if(ct.includes('application/json')){ try{ j=raw?JSON.parse(raw):{}; }catch{ throw new Error(`Respuesta JSON inválida (${r.status}) en ${url}`); } }
+  else{ const preview=raw.replace(/\s+/g,' ').slice(0,160); throw new Error(`El servidor respondió ${r.status} con ${ct||'contenido no JSON'} en ${url}. ${preview}`); }
+  if(!r.ok) throw new Error(j.detail ? `${j.error||'Error'} — ${j.detail}` : (j.error||`Error HTTP ${r.status}`));
+  return j;
+}
+async function boot(){ try{ await api('/api/admin/me'); loginBox.classList.add('hidden'); app.classList.remove('hidden'); logoutBtn.classList.remove('hidden'); await refresh(); }catch{} }
+loginForm.onsubmit=async e=>{ e.preventDefault(); loginMsg.innerHTML=''; try{ await api('/api/admin/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(Object.fromEntries(new FormData(loginForm)))}); location.reload(); }catch(err){ loginMsg.innerHTML='<div class="notice error">'+esc(err.message)+'</div>'; } }
+async function logout(){ await fetch('/api/admin/logout',{method:'POST'}); location.reload(); }
+function tab(name,b){
+  ACTIVE_TAB=name;
+  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active')); b.classList.add('active');
+  requestsSec.classList.toggle('hidden',name!=='requests');
+  interviewsSec.classList.toggle('hidden',name!=='interviews');
+  vestsSec.classList.toggle('hidden',name!=='vests');
+  eventsSec.classList.toggle('hidden',name!=='events');
+  if(VEST_TIMER){ clearInterval(VEST_TIMER); VEST_TIMER=null; }
+  if(name==='interviews') loadInterviews();
+  if(name==='vests'){ loadVests(); VEST_TIMER=setInterval(()=>{ if(ACTIVE_TAB==='vests') loadVests(true); },5000); }
+}
+function showEventForm(){ eventForm.classList.remove('hidden'); eventForm.scrollIntoView({behavior:'smooth'}); }
+function competitionName(v){
+  if(v==='libertadores') return 'CONMEBOL Libertadores';
+  if(v==='sudamericana') return 'CONMEBOL Sudamericana';
+  if(v==='copa_ecuador') return 'Copa Ecuador';
+  return 'Otra competición';
+}
+function accreditationTypeName(v,category){
+  if(category==='photo' || v==='fotografo') return 'Fotógrafo';
+  return ({
+    medio_digital:'Medio digital',
+    prensa_escrita:'Prensa escrita',
+    radio:'Radio',
+    tv:'TV',
+    camarografo:'Camarógrafo'
+  })[v] || 'Medio de comunicación';
+}
+function combine12HourDateTime(prefix,required=false){
+  const date=document.getElementById(prefix+'Date').value;
+  const hour=document.getElementById(prefix+'Hour').value;
+  const minute=document.getElementById(prefix+'Minute').value;
+  const period=document.getElementById(prefix+'Period').value;
+
+  if(!date && !hour && !minute && !period){
+    if(required) throw new Error('Completa la fecha y hora del partido.');
+    return '';
+  }
+  if(!date || !hour || !minute || !period){
+    throw new Error(prefix==='deadline'
+      ? 'Completa todos los datos de la fecha límite: fecha, hora, minutos y AM/PM.'
+      : 'Completa todos los datos de la fecha del partido: fecha, hora, minutos y AM/PM.');
+  }
+
+  let h=Number(hour);
+  if(period==='AM' && h===12) h=0;
+  if(period==='PM' && h!==12) h+=12;
+
+  return `${date}T${String(h).padStart(2,'0')}:${minute}`;
+}
+
+function formatEventDate12h(value){
+  if(!value) return '';
+  const match=String(value).match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/);
+  if(!match) return value;
+  const [,year,month,day,hh,mm]=match;
+  let hour=Number(hh);
+  const period=hour>=12?'PM':'AM';
+  hour=hour%12 || 12;
+  return `${day}/${month}/${year} · ${hour}:${mm} ${period}`;
+}
+
+newEvent.onsubmit=async e=>{
+  e.preventDefault();
+  eventMsg.innerHTML='';
+  try{
+    const d=Object.fromEntries(new FormData(newEvent));
+    d.eventDate=combine12HourDateTime('eventDate',true);
+    d.deadline=combine12HourDateTime('deadline',false);
+
+    await api('/api/admin/events',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(d)
+    });
+
+    newEvent.reset();
+    eventForm.classList.add('hidden');
+    await refresh();
+  }catch(err){
+    eventMsg.innerHTML='<div class="notice error">'+esc(err.message)+'</div>';
+  }
+}
+async function refresh(){
+  EVENTS=await api('/api/admin/events');
+  renderEvents();
+  const setOptions=(sel, includeAll=true)=>{ const old=sel.value; sel.innerHTML=(includeAll?'<option value="">Todos los eventos</option>':'')+EVENTS.filter(e=>e.status!=='archived').map(e=>`<option value="${e.id}">${esc(e.title)}</option>`).join(''); if([...sel.options].some(o=>o.value===old)) sel.value=old; };
+  setOptions(eventFilter,true); setOptions(vestEventFilter,true);
+  await loadRequests();
+  await loadInterviews(true);
+}
+function setEventView(view){
+  EVENT_VIEW=view;
+  currentEventsBtn.classList.toggle('active',view==='current');
+  archivedEventsBtn.classList.toggle('active',view==='archived');
+  renderEvents();
+}
+
+function renderEvents(){
+  const activeEvents=EVENTS.filter(e=>e.status!=='archived');
+  const archivedEvents=EVENTS.filter(e=>e.status==='archived');
+  const visible=EVENT_VIEW==='archived' ? archivedEvents : activeEvents;
+
+  currentEventsBtn.innerHTML=`Partidos / eventos <span class="event-count">${activeEvents.length}</span>`;
+  archivedEventsBtn.innerHTML=`Archivados <span class="event-count">${archivedEvents.length}</span>`;
+
+  eventViewInfo.textContent=EVENT_VIEW==='archived'
+    ? 'Historial de partidos archivados. Puedes descargar sus reportes o restaurarlos si necesitas volver a gestionarlos.'
+    : 'Aquí aparecen únicamente los eventos vigentes. Al archivar uno, se moverá automáticamente al apartado Archivados.';
+
+  eventCards.innerHTML=visible.map(e=>{
+    const controls=EVENT_VIEW==='archived'
+      ? `<button class="btn secondary tiny" onclick="restoreEvent(${e.id})">Restaurar</button>`
+      : `<button class="btn primary tiny" onclick="setEventStatus(${e.id},'open')">Abrir</button>
+         <button class="btn secondary tiny" onclick="setEventStatus(${e.id},'closed')">Cerrar</button>
+         <button class="btn secondary tiny" onclick="archiveEvent(${e.id})">Archivar</button>`;
+
+    return `<div class="card glass stat">
+      <div class="row between">
+        <span class="badge ${e.status}">${e.status.toUpperCase()}</span>
+        <span class="muted">${e.pending_requests} pendientes</span>
+      </div>
+      <h3 style="margin-top:14px">${esc(e.title)}</h3>
+      <div class="competition-tag ${e.competition==='libertadores'?'libertadores':e.competition==='sudamericana'?'sudamericana':''}">${esc(competitionName(e.competition))}</div>
+      <p class="muted">${esc(formatEventDate12h(e.event_date))}${e.venue?' · '+esc(e.venue):''}</p>
+      <div class="inline-stack muted" style="margin-top:8px">
+        <span>${e.total_requests} solicitudes totales</span>
+        <span>${e.approved_requests} aprobadas / entregadas</span>
+        <span>Asistencia: ${e.present_requests} registrada(s)</span>
+      </div>
+      <div class="actions" style="margin-top:16px">
+        ${controls}
+        <a class="btn secondary tiny" href="/api/admin/events/${e.id}/security.xlsx">Listado seguridad Excel</a>
+        <a class="btn secondary tiny" href="/api/admin/events/${e.id}/attendance.xlsx">Asistencia Excel</a>
+      </div>
+    </div>`;
+  }).join('') || (
+    EVENT_VIEW==='archived'
+      ? '<div class="card glass empty-event-state"><b>No hay eventos archivados.</b><span class="muted">Cuando archives un partido aparecerá aquí.</span></div>'
+      : '<div class="card glass empty-event-state"><b>No hay eventos vigentes.</b><span class="muted">Crea un partido nuevo para comenzar.</span></div>'
+  );
+}
+
+async function archiveEvent(id){
+  if(!confirm('¿Archivar este evento? Se quitará de la vista principal y pasará al apartado Archivados.')) return;
+  await setEventStatus(id,'archived');
+}
+
+async function restoreEvent(id){
+  if(!confirm('¿Restaurar este evento a la lista principal? Quedará cerrado hasta que decidas abrirlo.')) return;
+  await setEventStatus(id,'closed');
+}
+
+async function setEventStatus(id,status){
+  await api('/api/admin/events/'+id,{
+    method:'PATCH',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({status})
+  });
+  await refresh();
+}
+
+function formatInterviewDate(value){
+  if(!value) return '';
+  const m=String(value).match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  return m ? `${m[3]}/${m[2]}/${m[1]}` : value;
+}
+
+async function loadInterviews(silent=false){
+  const q=new URLSearchParams();
+  if(interviewStatusFilter.value) q.set('status',interviewStatusFilter.value);
+  try{
+    INTERVIEWS=await api('/api/admin/interviews?'+q.toString());
+    renderInterviews();
+
+    const all=interviewStatusFilter.value ? await api('/api/admin/interviews') : INTERVIEWS;
+    const pending=all.filter(x=>x.status==='pending').length;
+    interviewTabCount.textContent=pending ? pending : '';
+
+    const approved=all.filter(x=>x.status==='approved').length;
+    const rejected=all.filter(x=>x.status==='rejected').length;
+    interviewStats.innerHTML=`
+      <div class="mini-stat"><small>PENDIENTES</small><strong>${pending}</strong></div>
+      <div class="mini-stat"><small>APROBADAS</small><strong>${approved}</strong></div>
+      <div class="mini-stat"><small>RECHAZADAS</small><strong>${rejected}</strong></div>`;
+  }catch(err){
+    if(!silent) alert(err.message);
+  }
+}
+
+function renderInterviews(){
+  interviewRows.innerHTML=INTERVIEWS.map(r=>`<tr>
+    <td>
+      <b>${esc(r.interviewee)}</b>
+      <small>${esc(r.public_code)}</small>
+    </td>
+    <td>
+      <b>${esc(r.media_name)}</b>
+      <small>${esc(r.program_name)}</small>
+    </td>
+    <td>${esc(r.journalists)}</td>
+    <td>
+      <b>${esc(formatInterviewDate(r.requested_day))}</b>
+      <small>${esc(r.requested_time)}</small>
+    </td>
+    <td>
+      <b>${Number(r.max_duration)} min</b>
+      <small>${esc(interviewModeLabel(r.interview_mode))}</small>
+    </td>
+    <td class="interview-topics-cell">${esc(r.topics)}${r.notes?`<small>Obs.: ${esc(r.notes)}</small>`:''}</td>
+    <td>${esc(r.email)}<br>${esc(r.phone)}</td>
+    <td><span class="badge ${r.status}">${statusLabel(r.status)}</span>${r.admin_notes?`<small>${esc(r.admin_notes)}</small>`:''}</td>
+    <td><div class="actions">
+      ${r.status==='pending'?`
+        <button class="btn primary tiny" onclick="decideInterview(${r.id},'approved')">Aprobar</button>
+        <button class="btn secondary tiny" onclick="decideInterview(${r.id},'rejected')">Rechazar</button>
+      `:''}
+      <button class="btn secondary tiny" onclick="interviewNote(${r.id})">Nota</button>
+      <button class="btn danger tiny" onclick="removeInterview(${r.id})">Eliminar</button>
+    </div></td>
+  </tr>`).join('') || '<tr><td colspan="9">No hay solicitudes de entrevista.</td></tr>';
+}
+
+async function decideInterview(id,status){
+  const current=INTERVIEWS.find(x=>x.id===id);
+  if(!current) return;
+
+  let adminNotes=current.admin_notes || '';
+
+  if(status==='approved'){
+    adminNotes='Solicitud aprobada. Comunicate con el jefe de prensa Juan Gonzales y su numero +593 994476462';
+    if(!confirm('¿Aprobar esta solicitud? Se enviará automáticamente al periodista el contacto del jefe de prensa Juan Gonzales.')) return;
+  }else{
+    const note=prompt(
+      'Mensaje opcional para el periodista al rechazar:',
+      adminNotes || 'En esta ocasión no es posible aprobar la solicitud.'
+    );
+    if(note===null) return;
+    adminNotes=note;
+  }
+
+  const result=await api('/api/admin/interviews/'+id,{
+    method:'PATCH',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({status,adminNotes})
+  });
+
+  if(result.emailSent===true){
+    alert(status==='approved'
+      ? 'Solicitud aprobada y correo enviado al periodista.'
+      : 'Solicitud rechazada y correo enviado al periodista.');
+  }else if(result.emailWarning){
+    alert(result.emailWarning);
+  }
+
+  await loadInterviews();
+}
+
+async function interviewNote(id){
+  const current=INTERVIEWS.find(x=>x.id===id);
+  if(!current) return;
+  const note=prompt('Nota interna / mensaje de prensa:',current.admin_notes || '');
+  if(note===null) return;
+
+  await api('/api/admin/interviews/'+id,{
+    method:'PATCH',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({adminNotes:note})
+  });
+  await loadInterviews();
+}
+
+async function removeInterview(id){
+  if(!confirm('¿Eliminar esta solicitud de entrevista?')) return;
+  await api('/api/admin/interviews/'+id,{method:'DELETE'});
+  await loadInterviews();
+}
+
+async function loadRequests(){ const q=new URLSearchParams(); if(eventFilter.value) q.set('eventId',eventFilter.value); if(statusFilter.value) q.set('status',statusFilter.value); if(attendanceFilter.value) q.set('attendance',attendanceFilter.value); REQUESTS=await api('/api/admin/requests?'+q.toString()); renderRequests(); }
+function renderRequests(){
+  // v6.8.1: Solicitudes muestra solo eventos vigentes.
+  // Las solicitudes de eventos archivados se conservan en base de datos,
+  // pero desaparecen del panel operativo para evitar acumulación histórica.
+  const activeEventIds = new Set(
+    EVENTS.filter(e => e.status !== 'archived').map(e => String(e.id))
+  );
+
+  requestRows.innerHTML = REQUESTS.map(r=>`<tr>
+    <td><b>${esc(r.first_name+' '+r.last_name)}</b><small>${esc(r.role_title)}</small><small>${esc(r.document)}</small><small>${esc(r.nationality||'')}</small><small>${esc(r.coverage)}</small></td>
+    <td>${esc(r.media_name)}</td>
+    <td>
+      ${esc(accreditationTypeName(r.accreditation_type,r.category))}
+      ${r.accreditation_type==='camarografo'?'<small class="restriction-note">Solo rueda de prensa</small>':''}
+    </td>
+    <td>${esc(r.email)}<br>${esc(r.phone)}</td>
+    <td><span class="badge ${r.status}">${statusLabel(r.status)}</span></td>
+    <td><input value="${esc(r.assignment||'')}" placeholder="Pupitre / cabina / zona" onchange="setRequest(${r.id},{assignment:this.value})"></td>
+    <td>${r.attendance_status==='present'?`<span class="badge present">Presente</span><small>${r.attendance_at?esc(new Date(r.attendance_at).toLocaleString()):''}</small>`:'<span class="badge absent">Sin registro</span>'}</td>
+    <td><div class="actions">${r.status==='pending'?`<button class="btn primary tiny" onclick="setRequest(${r.id},{status:'approved'})">Aprobar</button><button class="btn secondary tiny" onclick="reject(${r.id})">Rechazar</button>`:''}${r.status==='approved'?`<button class="btn secondary tiny" onclick="setRequest(${r.id},{status:'delivered'})">Entregar</button>`:''}${['approved','delivered'].includes(r.status)&&r.attendance_status!=='present'?`<button class="btn primary tiny" onclick="markAttendance(${r.id})">Asistencia</button>`:''}<button class="btn secondary tiny" onclick="notes(${r.id})">Nota</button><button class="btn danger tiny" onclick="removeReq(${r.id})">Eliminar</button></div></td>
+  </tr>`).join('') || '<tr><td colspan="8">No hay solicitudes.</td></tr>';
+}
+async function setRequest(id,data){
+  const result=await api('/api/admin/requests/'+id,{
+    method:'PATCH',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify(data)
+  });
+
+  if(data.status==='approved'){
+    if(result.emailSent===true){
+      alert('Acreditación aprobada. El correo de confirmación con el QR fue enviado correctamente.');
+    }else if(result.emailSent===false || result.emailWarning){
+      alert(result.emailWarning || 'La acreditación fue aprobada, pero no se pudo enviar el correo.');
+    }
+  }
+
+  await loadRequests();
+  await refreshEventStatsOnly();
+}
+async function markAttendance(id){ await api('/api/admin/attendance/'+id,{method:'POST'}); await loadRequests(); await refreshEventStatsOnly(); }
+async function reject(id){ const n=prompt('Motivo o nota para el solicitante (opcional):',''); await setRequest(id,{status:'rejected',adminNotes:n||''}); }
+async function notes(id){ const r=REQUESTS.find(x=>x.id===id); const n=prompt('Nota visible en el estado de la solicitud:',r?.admin_notes||''); if(n!==null) await setRequest(id,{adminNotes:n}); }
+async function removeReq(id){ if(confirm('¿Eliminar esta solicitud?')){ await api('/api/admin/requests/'+id,{method:'DELETE'}); await loadRequests(); await refreshEventStatsOnly(); } }
+async function refreshEventStatsOnly(){ EVENTS=await api('/api/admin/events'); renderEvents(); }
+async function loadVests(silent=false){
+  const info=vestSyncInfo, debug=vestDebug; const q=new URLSearchParams(); if(vestEventFilter.value) q.set('eventId',vestEventFilter.value);
+  try{
+    const response=await api('/api/admin/vests?'+q.toString()+'&_='+Date.now());
+    VESTS=Array.isArray(response)?response:(response.rows||[]);
+    const out=VESTS.filter(x=>x.status==='out'), ret=VESTS.filter(x=>x.status==='returned'); const retained=out.filter(x=>Number(x.credential_retained)===1).length;
+    vestStats.innerHTML=`<div class="card stat"><strong>${out.length}</strong><span>Pendientes de devolución</span></div><div class="card stat"><strong>${ret.length}</strong><span>Devueltos</span></div><div class="card stat"><strong>${retained}</strong><span>Credenciales retenidas ahora</span></div>`;
+    if(!Array.isArray(response)){ debug.classList.remove('hidden'); debug.className='notice info'; debug.textContent=`Servidor: ${response.totalAll} movimiento(s) totales · ${response.totalForEvent} para el evento seleccionado · ${response.serverTime}`; }
+    vestRows.innerHTML=VESTS.map(v=>`<tr><td><b>N.º ${esc(v.vest_number)}</b></td><td><b>${esc(v.first_name+' '+v.last_name)}</b><br><span class="muted">${esc(v.public_code||'')}</span></td><td>${esc(v.media_name)}</td><td><span class="badge ${v.status==='out'?'out':'returned'}">${v.status==='out'?'En uso':'Devuelto'}</span></td><td>${formatDT(v.checkout_at)}</td><td>${v.returned_at?formatDT(v.returned_at):'—'}</td><td>${Number(v.credential_retained)===1?(v.status==='out'?'Retenida':'Devuelta / recordatorio'):'No retenida'}</td><td><button class="btn secondary tiny" onclick="showVestDetail(${v.id})">Ver registro</button></td></tr>`).join('')||'<tr><td colspan="8">No hay movimientos de chalecos para este evento todavía.</td></tr>';
+    info.className='notice success'; info.textContent=`Actualizado ${new Date().toLocaleTimeString()} · ${VESTS.length} movimiento(s) mostrados.`;
+  }catch(err){ info.className='notice error'; info.textContent='No se pudo actualizar chalecos: '+err.message; debug.classList.remove('hidden'); debug.className='notice error'; debug.textContent='Error consultando /api/admin/vests: '+err.message; if(!silent) console.error(err); }
+}
+function formatDT(v){ if(!v) return '—'; const d=new Date(v.includes('T')?v:v.replace(' ','T')+'Z'); return Number.isNaN(d.getTime())?esc(v):d.toLocaleString(); }
+function showVestDetail(id){ const v=VESTS.find(x=>Number(x.id)===Number(id)); if(!v) return; vestDetail.classList.remove('hidden'); vestDetail.innerHTML=`<div class="row between mobile"><div><div class="eyebrow">Registro de chaleco</div><h2>Chaleco N.º ${esc(v.vest_number)}</h2><p class="muted">${esc(v.first_name+' '+v.last_name)} · ${esc(v.media_name)}</p></div><button class="btn secondary" onclick="vestDetail.classList.add('hidden')">Cerrar</button></div><div class="kv"><div><small>ESTADO</small><strong>${v.status==='out'?'En uso':'Devuelto'}</strong></div><div><small>CREDENCIAL RETENIDA</small><strong>${Number(v.credential_retained)===1?'Sí':'No'}</strong></div><div><small>ENTREGA</small><strong>${formatDT(v.checkout_at)}</strong></div><div><small>DEVOLUCIÓN</small><strong>${v.returned_at?formatDT(v.returned_at):'Pendiente'}</strong></div></div><div class="grid2" style="margin-top:18px"><div><h3>Firma de recepción</h3>${v.checkout_signature?`<img class="signature-preview" src="${v.checkout_signature}" alt="Firma de recepción">`:'<div class="notice">Sin firma guardada.</div>'}</div><div><h3>Firma de devolución</h3>${v.return_signature?`<img class="signature-preview" src="${v.return_signature}" alt="Firma de devolución">`:'<div class="notice">Aún no hay firma de devolución.</div>'}</div></div>`; vestDetail.scrollIntoView({behavior:'smooth',block:'start'}); }
+boot();
+</script>
+</div></main>
+</body>
+</html>

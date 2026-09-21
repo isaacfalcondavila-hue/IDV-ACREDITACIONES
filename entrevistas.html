@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>IDV | Solicitud de entrevista</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body class="form-public-page interview-page">
+
+<header class="topbar">
+  <div class="brand-cluster">
+    <div class="brand">
+      <div class="logo">IDV</div>
+      <div>
+        <b>Independiente del Valle</b>
+        <small>Departamento de Comunicación y Prensa</small>
+      </div>
+    </div>
+    <div class="brand-marks" aria-label="Escudos institucionales">
+      <img src="/logos/idv.png" alt="Escudo Independiente del Valle">
+      <img src="/logos/juniors.png" alt="Escudo Independiente Juniors">
+      <img src="/logos/dragonas.png" alt="Escudo Dragonas IDV">
+    </div>
+  </div>
+  <div class="topbar-actions"><a href="/" class="btn secondary tiny">Volver</a></div>
+</header>
+
+<main><div class="wrap form-page interview-form-page">
+  <div class="form-page-head interview-page-head">
+    <div>
+      <div class="eyebrow">Departamento de Comunicación y Prensa</div>
+      <div class="public-competition-badge">SOLICITUD DE ENTREVISTA</div>
+      <h1>Solicitud de entrevista IDV</h1>
+      <p class="lead">
+        Completa la información para solicitar una entrevista con un jugador o integrante
+        de Independiente del Valle. La solicitud será revisada por el jefe de prensa.
+      </p>
+    </div>
+  </div>
+
+  <div class="press-form-procedure">
+    <div>
+      <div class="press-section-label">PROCEDIMIENTO</div>
+      <p>
+        La solicitud puede realizarse durante todo el año. Enviar este formulario no garantiza
+        la aprobación; el Departamento de Comunicación y Prensa confirmará la decisión por correo.
+      </p>
+    </div>
+    <div class="press-form-important">
+      <strong>IMPORTANTE</strong>
+      <span>Indica claramente el entrevistado, los temas y el tiempo máximo solicitado.</span>
+    </div>
+  </div>
+
+  <section class="card glass institutional-form-card interview-form-card">
+    <div class="form-intro">
+      <div class="press-section-label">DATOS DE LA SOLICITUD</div>
+      <h2>Entrevista</h2>
+      <p class="muted">Todos los campos marcados con * son obligatorios.</p>
+    </div>
+
+    <form id="interviewForm">
+      <div class="grid2">
+        <div class="field">
+          <label>Entrevistado *</label>
+          <input name="interviewee" required placeholder="Nombre del jugador o integrante de IDV">
+        </div>
+
+        <div class="field">
+          <label>Medio *</label>
+          <input name="mediaName" required placeholder="Ej.: ESPN, La Red, Primicias">
+        </div>
+
+        <div class="field">
+          <label>Programa *</label>
+          <input name="programName" required placeholder="Nombre del programa / espacio">
+        </div>
+
+        <div class="field">
+          <label>Periodista(s) *</label>
+          <input name="journalists" required placeholder="Nombre(s) del periodista / equipo">
+        </div>
+
+        <div class="field" style="grid-column:1/-1">
+          <label>Temas a tratar *</label>
+          <textarea name="topics" rows="4" required placeholder="Detalla los temas principales de la entrevista"></textarea>
+        </div>
+
+        <div class="field">
+          <label>Día solicitado *</label>
+          <input name="requestedDay" type="date" required>
+        </div>
+
+        <div class="field">
+          <label>Horario solicitado *</label>
+          <div class="datetime-12h interview-time">
+            <select id="interviewHour" required aria-label="Hora">
+              <option value="">Hora</option>
+              <option value="1">01</option>
+              <option value="2">02</option>
+              <option value="3">03</option>
+              <option value="4">04</option>
+              <option value="5">05</option>
+              <option value="6">06</option>
+              <option value="7">07</option>
+              <option value="8">08</option>
+              <option value="9">09</option>
+              <option value="10">10</option>
+              <option value="11">11</option>
+              <option value="12">12</option>
+            </select>
+            <span class="time-separator">:</span>
+            <select id="interviewMinute" required aria-label="Minutos">
+              <option value="">Min</option>
+              <option value="00">00</option>
+              <option value="05">05</option>
+              <option value="10">10</option>
+              <option value="15">15</option>
+              <option value="20">20</option>
+              <option value="25">25</option>
+              <option value="30">30</option>
+              <option value="35">35</option>
+              <option value="40">40</option>
+              <option value="45">45</option>
+              <option value="50">50</option>
+              <option value="55">55</option>
+            </select>
+            <select id="interviewPeriod" required aria-label="AM o PM">
+              <option value="">AM/PM</option>
+              <option value="AM">AM</option>
+              <option value="PM">PM</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Tiempo máximo *</label>
+          <div class="input-suffix">
+            <input name="maxDuration" type="number" min="1" max="180" step="1" required placeholder="15">
+            <span>minutos</span>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Vía *</label>
+          <select name="interviewMode" required>
+            <option value="">Selecciona una opción</option>
+            <option value="radial">RADIAL</option>
+            <option value="presencial">PRESENCIAL</option>
+            <option value="zoom">ZOOM</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label>Correo *</label>
+          <input name="email" type="email" required autocomplete="email" placeholder="correo@medio.com">
+        </div>
+
+        <div class="field">
+          <label>Teléfono *</label>
+          <input name="phone" required autocomplete="tel">
+        </div>
+
+        <div class="field" style="grid-column:1/-1">
+          <label>Observaciones</label>
+          <textarea name="notes" rows="3" placeholder="Información adicional o requerimientos especiales (opcional)"></textarea>
+        </div>
+      </div>
+
+      <div id="interviewMsg"></div>
+      <button class="btn primary submit-accreditation">Enviar solicitud de entrevista</button>
+    </form>
+  </section>
+</div></main>
+
+<script>
+const form=document.getElementById('interviewForm');
+const msg=document.getElementById('interviewMsg');
+
+function requestedTime12h(){
+  const hour=document.getElementById('interviewHour').value;
+  const minute=document.getElementById('interviewMinute').value;
+  const period=document.getElementById('interviewPeriod').value;
+  if(!hour || !minute || !period) throw new Error('Completa el horario solicitado.');
+  return `${Number(hour)}:${minute} ${period}`;
+}
+
+form.onsubmit=async e=>{
+  e.preventDefault();
+  msg.innerHTML='';
+  const btn=e.submitter;
+  if(btn){btn.disabled=true;btn.textContent='Enviando solicitud...';}
+
+  try{
+    const d=Object.fromEntries(new FormData(form));
+    d.requestedTime=requestedTime12h();
+    d.maxDuration=Number(d.maxDuration);
+
+    const r=await fetch('/api/public/interviews',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(d)
+    });
+    const j=await r.json();
+    if(!r.ok) throw new Error(j.error || 'No se pudo enviar la solicitud.');
+
+    form.reset();
+    msg.innerHTML=`<div class="interview-success">
+      <div class="press-section-label">SOLICITUD ENVIADA</div>
+      <h3>Recibimos tu solicitud de entrevista</h3>
+      <p>El Departamento de Comunicación y Prensa la revisará y responderá al correo registrado.</p>
+      <small>Código de solicitud: <b>${j.code}</b></small>
+      ${j.emailWarning?`<p class="muted">${j.emailWarning}</p>`:''}
+    </div>`;
+  }catch(err){
+    msg.innerHTML='<div class="notice error">'+String(err.message || err)+'</div>';
+  }finally{
+    if(btn){btn.disabled=false;btn.textContent='Enviar solicitud de entrevista';}
+  }
+};
+</script>
+</body>
+</html>

@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>IDV | Registro de medios</title>
+  <link rel="stylesheet" href="/styles.css">
+  
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand-cluster">
+    <div class="brand">
+      <div class="logo">IDV</div>
+      <div>
+        <b>Independiente del Valle</b>
+        <small>Acreditaciones de prensa</small>
+      </div>
+    </div>
+    <div class="brand-marks" aria-label="Escudos institucionales">
+      <img src="/logos/idv.png" alt="Escudo Independiente del Valle">
+      <img src="/logos/juniors.png" alt="Escudo Independiente Juniors">
+      <img src="/logos/dragonas.png" alt="Escudo Dragonas IDV">
+    </div>
+  </div>
+  <div class="topbar-actions"><a href="/admin.html" class="btn secondary tiny">Acceso IDV</a></div>
+</header>
+
+<main><div class="wrap">
+<section id="closed" class="card status-card hidden">
+  <div class="status-icon">—</div>
+  <div class="eyebrow">Acreditaciones</div>
+  <h2>No hay acreditaciones abiertas</h2>
+  <p class="lead" style="margin:10px auto 0">Cuando IDV habilite el próximo partido podrás enviar tu solicitud desde esta página.</p>
+</section>
+
+<section id="libertadoresGate" class="card libertadores-gate hidden">
+  <div class="libertadores-gate-head">
+    <div>
+      <div class="eyebrow">CONMEBOL Libertadores 2026</div>
+      <h1>Información antes de continuar</h1>
+    </div>
+    <span class="competition-tag libertadores">Libertadores</span>
+  </div>
+
+  <div class="libertadores-gate-grid">
+    <div>
+      <h3>Estimados periodistas</h3>
+      <p>
+        Independiente del Valle, a través de su Departamento de Comunicación y Prensa,
+        inicia el proceso de acreditaciones para la cobertura de este partido por CONMEBOL Libertadores.
+      </p>
+
+      <div class="libertadores-warning">
+        <strong>IMPORTANTE</strong>
+        <p>
+          El registro de sus datos <b>NO garantiza la aceptación inmediata</b> de esta solicitud.
+          Por favor manténgase pendiente de su <b>correo electrónico</b> para conocer su estatus.
+        </p>
+      </div>
+
+      <p class="muted">
+        Para esta competición, los medios deben revisar las disposiciones para titulares y no titulares
+        de derechos, filmaciones y grabaciones dentro del estadio.
+      </p>
+    </div>
+
+    <div class="manual-card">
+      <small>DOCUMENTO OFICIAL</small>
+      <h3>Manual de Clubes CONMEBOL Libertadores 2026</h3>
+      <p class="muted">Revísalo antes de enviar tu solicitud.</p>
+      <a class="btn secondary" target="_blank" rel="noopener noreferrer"
+         href="https://www.conmebol.com/documentos/nrh-manual-de-clubes-conmebol-libertadores-2026/">
+        Abrir Manual de Clubes ↗
+      </a>
+    </div>
+  </div>
+
+  <label class="libertadores-confirm">
+    <input type="checkbox" id="libertadoresRead">
+    <span>He leído la información y entiendo que enviar la solicitud no garantiza la aprobación.</span>
+  </label>
+
+  <button id="continueLibertadores" class="btn primary" disabled>Continuar con la acreditación</button>
+</section>
+
+<section id="menuSection" class="media-menu hidden">
+  <div class="eyebrow">Prensa · Acreditaciones</div>
+  <h1>Registro de medios</h1>
+  <p class="lead menu-lead">Selecciona el tipo de acreditación. Al finalizar el registro se generará un código QR único para presentar el día del partido.</p>
+
+  <div class="event-strip">
+    <div>
+      <small>EVENTO ACTIVO</small>
+      <strong id="eventTitle">Próximo partido</strong>
+    </div>
+    <span id="eventMeta"></span>
+  </div>
+
+  <div class="media-choice-grid">
+    <a class="media-choice-card" href="/prensa.html">
+      <div class="choice-icon">✎</div>
+      <div class="choice-copy">
+        <div class="choice-kicker">ACREDITACIÓN</div>
+        <h2>Prensa escrita</h2>
+        <p>Periodistas, redactores y medios con asignación de pupitre o cabina.</p>
+        <span class="choice-action">Ingresar a prensa escrita <b>→</b></span>
+      </div>
+    </a>
+
+    <a class="media-choice-card" href="/fotografos.html">
+      <div class="choice-icon">◎</div>
+      <div class="choice-copy">
+        <div class="choice-kicker">ACREDITACIÓN</div>
+        <h2>Fotógrafos</h2>
+        <p>Registro para fotógrafos acreditados y personal gráfico que realizará cobertura en cancha.</p>
+        <span class="choice-action">Ingresar a fotógrafos <b>→</b></span>
+      </div>
+    </a>
+  </div>
+
+  <div class="menu-note">Enviar una solicitud no garantiza la acreditación. El equipo de prensa revisará la información antes de aprobarla.</div>
+</section>
+
+<script>
+(async()=>{
+  try{
+    const r = await fetch('/api/public/event?_='+Date.now(),{cache:'no-store'});
+    const j = await r.json();
+    if(!j.event){
+      document.getElementById('closed').classList.remove('hidden');
+      return;
+    }
+    const event=j.event;
+    document.getElementById('eventTitle').textContent = event.title;
+    document.getElementById('eventMeta').textContent = [event.event_date, event.venue].filter(Boolean).join(' · ');
+
+    const isLibertadores=event.competition==='libertadores';
+    const ackKey=`idv_libertadores_ack_${event.id}`;
+
+    if(isLibertadores && sessionStorage.getItem(ackKey)!=='1'){
+      const gate=document.getElementById('libertadoresGate');
+      const check=document.getElementById('libertadoresRead');
+      const btn=document.getElementById('continueLibertadores');
+
+      gate.classList.remove('hidden');
+      check.addEventListener('change',()=>{ btn.disabled=!check.checked; });
+      btn.addEventListener('click',()=>{
+        sessionStorage.setItem(ackKey,'1');
+        gate.classList.add('hidden');
+        document.getElementById('menuSection').classList.remove('hidden');
+        window.scrollTo({top:0,behavior:'smooth'});
+      });
+    }else{
+      document.getElementById('menuSection').classList.remove('hidden');
+    }
+  }catch{
+    document.getElementById('closed').classList.remove('hidden');
+  }
+})();
+</script>
+</div></main>
+</body>
+</html>
